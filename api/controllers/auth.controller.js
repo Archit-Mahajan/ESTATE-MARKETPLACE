@@ -27,7 +27,7 @@ export const signin = async (req,res,next) =>{
         const {password:pass,...userInfo} = validUser._doc;
         res.cookie("access_token",token,{
             httpOnly:true
-        }).status(200).json("Valid User");
+        }).status(200).json(userInfo);
             
         
     }
@@ -44,7 +44,7 @@ export const google = async (req,res,next) =>{
             const {password:pass,...userInfo} = user._doc;
             res.cookie("access_token",token,{
                 httpOnly:true
-            }).status(200).json("Valid User");
+            }).status(200).json(userInfo);
         }else{
             const generatedPassword = Math.random().toString(36).slice(-8)+ Math.random().toString(36).slice(-8);
             const hashedPassword = bcryptjs.hashSync(generatedPassword,10);
@@ -54,7 +54,7 @@ export const google = async (req,res,next) =>{
             const {password:pass,...userInfo} = newUser._doc;
             res.cookie("access_token",token,{
                 httpOnly:true
-            }).status(200).json("Valid User");
+            }).status(200).json(userInfo);
         }
     }catch(error){
         next(error);
