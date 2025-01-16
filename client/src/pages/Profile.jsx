@@ -10,11 +10,7 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar || '');
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
-  const [formData, setFormData] = useState({
-    username: currentUser?.username || '',
-    email: currentUser?.email || '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const dispatch = useDispatch();
 
