@@ -1,41 +1,29 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useState, useRef, useEffect } from 'react';
-import { signInSuccess } from '../../redux/user/userSlice';
-import axios from 'axios';
 import { updateUserStart, updateUserSuccess, updateUserFailure } from '../../redux/user/userSlice';
-import { useDispatch } from 'react-redux';
+import axios from 'axios';
 
 export default function Profile() {
   const fileRef = useRef(null);
-  const { currentUser, loading } = useSelector((state) => state.user);
-  const [username] = useState(currentUser.username);
-  const [email] = useState(currentUser.email);
-  const [password] = useState('');
-  const [image, setImage] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatar);
-  const dispatch = useDispatch();
-  const [fileUploadError, setFileUploadError] = useState('');
+  const { currentUser, loading, error } = useSelector((state) => state.user);
+  const [file, setFile] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar || '');
   const [filePerc, setFilePerc] = useState(0);
-  const [formData, setFormData] = useState({});
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      setFileUploadError('Image must be less than 2 MB.');
-      setImage(null);
-      setFilePerc(0);
-    } else {
-      setFileUploadError('');
-      setImage(file);
-    }
-  };
+  const [fileUploadError, setFileUploadError] = useState(false);
+  const [formData, setFormData] = useState({
+    username: currentUser?.username || '',
+    email: currentUser?.email || '',
+    password: '',
+  });
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const uploadImage = async () => {
-      if (image) {
+      if (file) {
         try {
           const formData = new FormData();
-          formData.append('file', image);
+          formData.append('file', file);
           formData.append('upload_preset', 'profile_pictures');
 
           const response = await axios.post(
@@ -53,6 +41,7 @@ export default function Profile() {
 
           setAvatarUrl(response.data.secure_url);
           setFilePerc(100);
+          setFileUploadError(false);
         } catch (error) {
           console.error('Image upload failed:', error);
           setFileUploadError('Failed to upload image. Please try again.');
@@ -61,44 +50,42 @@ export default function Profile() {
     };
 
     uploadImage();
-  }, [image]);
+  }, [file]);
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    try {
-      const userUpdateRes = await axios.put('/api/users/update-profile', {
-        username,
-        email,
-        password,
-        avatar: avatarUrl,
-      });
-
-      dispatch(signInSuccess(userUpdateRes.data));
-      alert('Profile updated successfully!');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFilePerc(0);
+      setFileUploadError(false);
     }
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
+
+      const updatedData = {
+        ...formData,
+        avatar: avatarUrl,
+      };
+
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updatedData),
       });
+
       const data = await res.json();
-      if (data.success === false) {
+
+      if (!data.success) {
         dispatch(updateUserFailure(data.message));
         return;
       }
@@ -106,6 +93,7 @@ export default function Profile() {
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
     } catch (error) {
+      console.error('Update failed:', error);
       dispatch(updateUserFailure(error.message));
     }
   };
@@ -116,7 +104,7 @@ export default function Profile() {
       <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
         <img
           onClick={() => fileRef.current.click()}
-          src={avatarUrl}
+          src={avatarUrl || 'https://via.placeholder.com/150'}
           alt='profile'
           className='rounded-full h-24 w-24 object-cover mx-auto cursor-pointer'
         />
@@ -140,29 +128,29 @@ export default function Profile() {
         />
         <input
           type='text'
-          placeholder='username'
-          defaultValue={currentUser.username}
+          placeholder='Username'
           id='username'
+          value={formData.username}
           className='border p-3 rounded-lg'
           onChange={handleChange}
         />
         <input
           type='email'
-          placeholder='email'
+          placeholder='Email'
           id='email'
-          defaultValue={currentUser.email}
+          value={formData.email}
           className='border p-3 rounded-lg'
           onChange={handleChange}
         />
         <input
           type='password'
-          placeholder='password'
-          onChange={handleChange}
+          placeholder='Password'
           id='password'
+          value={formData.password}
           className='border p-3 rounded-lg'
+          onChange={handleChange}
         />
         <button
-          type='submit'
           disabled={loading}
           className='bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80'
         >
@@ -173,6 +161,10 @@ export default function Profile() {
         <span className='text-red-700 cursor-pointer'>Delete account</span>
         <span className='text-red-700 cursor-pointer'>Sign out</span>
       </div>
+      <p className='text-red-700 mt-5'>{error || ''}</p>
+      <p className='text-green-700 mt-5'>
+        {updateSuccess ? 'User is updated successfully!' : ''}
+      </p>
     </div>
   );
 }
