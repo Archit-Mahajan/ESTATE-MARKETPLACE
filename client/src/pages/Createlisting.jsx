@@ -27,7 +27,7 @@ export default function CreateListing() {
   const [loading, setLoading] = useState(false);
 
   const handleImageSubmit = () => {
-    if (files.length > 0 && files.length + formData.imageUrls.length <= 6) { // Changed '< 7' to '<= 6' for clarity
+    if (files.length > 0 && files.length + formData.imageUrls.length <= 6) { 
       setUploading(true);
       setImageUploadError(false);
 
@@ -50,18 +50,17 @@ export default function CreateListing() {
           setUploading(false);
         });
     } else {
-      setImageUploadError('You can only upload up to 6 images per listing.'); // Updated error message for clarity
+      setImageUploadError('You can only upload up to 6 images per listing.'); 
     }
   };
 
   const storeImage = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'profile_pictures'); // Replace with your Cloudinary upload preset
-
+    formData.append('upload_preset', 'profile_pictures'); 
     try {
       const response = await axios.post(
-        'https://api.cloudinary.com/v1_1/dqdwnnrfv/image/upload', // Replace with your Cloudinary URL
+        'https://api.cloudinary.com/v1_1/dqdwnnrfv/image/upload', 
         formData,
         {
           onUploadProgress: (progressEvent) => {

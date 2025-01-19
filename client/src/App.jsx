@@ -6,8 +6,8 @@ import About from "./pages/About"
 import Profile from "./pages/Profile"
 import Header from "./components/Header"
 import PrivateRoute from "./components/Privateroute"
-import CreateListing from './pages/CreateListing';
-import UpdateListing from './pages/UpdateListing';
+import CreateListing from "./pages/CreateListing";
+import UpdateListing from "./pages/UpdateListing";
 import Listing from "./pages/Listing"
 import Search from "./pages/Search"
 
